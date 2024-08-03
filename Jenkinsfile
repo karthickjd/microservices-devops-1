@@ -41,7 +41,7 @@ pipeline {
             steps {
                     script{
                         withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DockerHubPass')]) {
-                        sh 'docker login -u karthick1616 --password Karthick@16' }
+                        sh 'docker login -u karthick1616 --password $DockerHubPass' }
                         sh 'docker push karthick1616/newsread-news && docker push karthick1616/newsread-customize'
                }
             }
@@ -58,15 +58,17 @@ pipeline {
    // }
         }    
 
-       post {
+      post {
         always {
-            // Always executed
-                sh 'docker rm news-service'
-                sh 'docker rm customize-service'
+            script {
+                def containers = ['news-service', 'customize-service']
+                containers.each { container ->
+                    sh "docker ps -a | grep ${container} && docker rm ${container} || echo 'Container ${container} does not exist'"
+                }
+            }
         }
         success {
-            // on sucessful execution
-            sh 'docker logout'   
+            sh 'docker logout'
         }
     }
 }
