@@ -58,15 +58,26 @@ pipeline {
    // }
         }    
 
-        post {
+      post {
         always {
-            // Always executed
-                sh 'docker rm news-service'
-                sh 'docker rm customize-service'
+            script {
+                // Log current containers
+                sh 'docker ps -a'
+                
+                def containers = ['news-service', 'customize-service']
+                containers.each { container ->
+                    def exists = sh(script: "docker ps -a -q -f name=${container}", returnStdout: true).trim()
+                    if (exists) {
+                        sh "docker rm ${container}"
+                    } else {
+                        echo "Container ${container} does not exist, skipping removal."
+                    }
+                }
+            }
         }
         success {
-            // on sucessful execution
-            sh 'docker logout'   
+            // On successful execution
+            sh 'docker logout'
         }
     }
 }
