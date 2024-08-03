@@ -41,7 +41,7 @@ pipeline {
             steps {
                     script{
                         withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DockerHubPass')]) {
-                        sh 'docker login -u karthick1616 --password ${DockerHubPass}' }
+                        sh 'docker login -u karthick1616 --password Karthick@16' }
                         sh 'docker push karthick1616/newsread-news && docker push karthick1616/newsread-customize'
                }
             }
