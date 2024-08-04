@@ -47,8 +47,8 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'docker build -t karthick1616/newsread-customize customize-service/'
-                    sh 'docker build -t karthick1616/newsread-news news-service/'
+                    sh 'docker build -t karthick1616/newsread-customize-service customize-service/'
+                    sh 'docker build -t karthick1616/newsread-news-service news-service/'
                 }
             }
         }
