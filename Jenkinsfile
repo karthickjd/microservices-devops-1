@@ -37,7 +37,7 @@ pipeline {
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner';
-                    withSonarQubeEnv('SonarQube scanner') {
+                    withSonarQubeEnv('SonarQube Server') {
                         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=newsread-microservice-application"
                     }
                 }
