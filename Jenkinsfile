@@ -68,7 +68,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DOCKER_HUB_PASS')]) {
                         sh 'echo $DOCKER_HUB_PASS | docker login -u karthick1616 --password-stdin'
-                        sh 'docker push karthick1616/newsread-news && docker push karthick1616/newsread-customize'
+                        sh 'docker push karthick1616/newsread-news-service && docker push karthick1616/newsread-customize-service'
                     }
                 }
             }
