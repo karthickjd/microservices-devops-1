@@ -1,103 +1,72 @@
+
 pipeline {
     agent any
     
-    stages {
+    stages{
         stage('SCA with OWASP Dependency Check') {
-            steps {
-                script {
-                    def maxRetries = 3
-                    def retryCount = 0
-                    def success = false
-
-                    while (!success && retryCount < maxRetries) {
-                        try {
-                            dependencyCheck additionalArguments: '''
-                                --format HTML
-                                --failOnCVSS 7
-                                --prettyPrint
-                            ''', odcInstallation: 'DP-Check'
-                            success = true
-                        } catch (Exception e) {
-                            retryCount++
-                            if (retryCount == maxRetries) {
-                                echo "Warning: OWASP Dependency Check failed after ${maxRetries} attempts."
-                                echo "Error: ${e.getMessage()}"
-                                unstable "OWASP Dependency Check failed repeatedly. Please check NVD access and try again."
-                            } else {
-                                echo "OWASP Dependency Check failed. Retrying in 60 seconds... (Attempt ${retryCount} of ${maxRetries})"
-                                sleep 60
-                            }
-                        }
-                    }
-                }
+        steps {
+            dependencyCheck additionalArguments: '''--format HTML
+            ''', odcInstallation: 'DP-Check'
             }
-        }
+    }
 
         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner';
-                    withSonarQubeEnv('SonarQube Server') {
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=newsread-microservice-application"
-                    }
-                }
-            }
+      steps {
+        script {
+          // requires SonarQube Scanner 2.8+
+          scannerHome = tool 'SonarScanner'
         }
+        withSonarQubeEnv('SonarQube Serverr') {
+          sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=newsread-microservice-application"
+        }
+      }
+    }
 
         stage('Build Docker Images') {
             steps {
-                script {
-                    sh 'docker build -t karthick1616/newsread-customize-service customize-service/'
-                    sh 'docker build -t karthick1616/newsread-news-service news-service/'
-                }
+                script{
+                    sh 'docker build -t karthick1616/newsread-customize customize-service/'
+                    sh 'docker build -t karthick1616/newsread-news news-service/'
             }
         }
-
+    }
         stage('Containerize And Test') {
             steps {
-                script {
-                    ['customize-service', 'news-service'].each { service ->
-                        sh "docker run -d --name ${service} -e FLASK_APP=run.py karthick1616/newsread-${service} && sleep 10 && docker logs ${service} && docker stop ${service}"
-                    }
+                script{
+                    sh 'docker run -d  --name customize-service -e FLASK_APP=run.py kelvinskell/newsread-customize && sleep 10 && docker logs customize-service && docker stop customize-service'
+                    sh 'docker run -d  --name news-service -e FLASK_APP=run.py kelvinskell/newsread-news && sleep 10 && docker logs news-service && docker stop news-service'
                 }
             }
         }
-
         stage('Push Images To Dockerhub') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DOCKER_HUB_PASS')]) {
-                        sh 'echo $DOCKER_HUB_PASS | docker login -u karthick1616 --password-stdin'
-                        sh 'docker push karthick1616/newsread-news-service && docker push karthick1616/newsread-customize-service'
-                    }
-                }
+                    script{
+                        withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DockerHubPass')]) {
+                        sh 'docker login -u karthick1616 --password ${DockerHubPass}' }
+                        sh 'docker push karthick1616/newsread-news && docker push kelvinskell/newsread-customize'
+               }
             }
-        }
+                 
+            }
 
-        // Uncomment and adjust as needed
-        // stage('Trivy scan on Docker images') {
-        //     steps {
-        //         sh 'TMPDIR=/home/jenkins'
-        //         sh 'trivy image karthick1616/newsread-news:latest'
-        //         sh 'trivy image karthick1616/newsread-customize:latest'
-        //     }
-        // }
-    }    
+        //stage('Trivy scan on Docker images'){
+          //  steps{
+            //     sh 'TMPDIR=/home/jenkins'
+              //   sh 'trivy image kelvinskell/newsread-news:latest'
+                // sh 'trivy image kelvinskell/newsread-customize:latest'
+        //}
+       
+   // }
+        }    
 
-    post {
+        post {
         always {
-            sh 'docker rm -f news-service || true'
-            sh 'docker rm -f customize-service || true'
-            // Publish the Dependency Check report
-            publishHTML([allowMissing: false, 
-                         alwaysLinkToLastBuild: true, 
-                         keepAll: true, 
-                         reportDir: '', 
-                         reportFiles: 'dependency-check-report.html', 
-                         reportName: 'Dependency Check Report', 
-                         reportTitles: ''])
+            // Always executed
+                sh 'docker rm news-service'
+                sh 'docker rm customize-service'
         }
         success {
+            // on sucessful execution
             sh 'docker logout'   
         }
     }
