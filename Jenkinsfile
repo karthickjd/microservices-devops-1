@@ -33,8 +33,8 @@ pipeline {
         stage('Containerize And Test') {
             steps {
                 script{
-                    sh 'docker run -d  --name customize-service -e FLASK_APP=run.py kelvinskell/newsread-customize && sleep 10 && docker logs customize-service && docker stop customize-service'
-                    sh 'docker run -d  --name news-service -e FLASK_APP=run.py kelvinskell/newsread-news && sleep 10 && docker logs news-service && docker stop news-service'
+                    sh 'docker run -d  --name customize-service -e FLASK_APP=run.py karthick1616/newsread-customize && sleep 10 && docker logs customize-service && docker stop customize-service'
+                    sh 'docker run -d  --name news-service -e FLASK_APP=run.py karthick1616/newsread-news && sleep 10 && docker logs news-service && docker stop news-service'
                 }
             }
         }
@@ -43,7 +43,7 @@ pipeline {
                     script{
                         withCredentials([string(credentialsId: 'DockerHubPass', variable: 'DockerHubPass')]) {
                         sh 'docker login -u karthick1616 --password ${DockerHubPass}' }
-                        sh 'docker push karthick1616/newsread-news && docker push kelvinskell/newsread-customize'
+                        sh 'docker push karthick1616/newsread-news && docker push karthick1616/newsread-customize'
                }
             }
                  
@@ -52,8 +52,8 @@ pipeline {
         //stage('Trivy scan on Docker images'){
           //  steps{
             //     sh 'TMPDIR=/home/jenkins'
-              //   sh 'trivy image kelvinskell/newsread-news:latest'
-                // sh 'trivy image kelvinskell/newsread-customize:latest'
+              //   sh 'trivy image karthick1616/newsread-news:latest'
+                // sh 'trivy image karthick1616/newsread-customize:latest'
         //}
        
    // }
