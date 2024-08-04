@@ -1,7 +1,7 @@
 
 pipeline {
     agent any
-    
+
     stages{
         stage('SCA with OWASP Dependency Check') {
         steps {
