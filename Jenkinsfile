@@ -17,7 +17,7 @@ pipeline {
           scannerHome = tool 'SonarScanner'
         }
         withSonarQubeEnv('SonarQube Server') {
-          sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=newsread-microservice-application"
+          sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=newsread-microservices-application"
         }
       }
     }
